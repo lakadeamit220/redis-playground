@@ -27,6 +27,28 @@ async function init() {
     const geohash = await client.geohash('maharashtra:locations', 'Nagpur');
     console.log("Geohash of Nagpur:", geohash);
 
+    // Fetching all locations stored in the geospatial index
+    const allLocations = await client.zrange('maharashtra:locations', 0, -1);
+    console.log("All locations in Maharashtra:", allLocations);
+
+    // Finding the closest location to a specific point
+    const closestLocations = await client.georadius('maharashtra:locations', 73.8567, 18.5204, 50, 'km', 'WITHDIST', 'ASC', 'COUNT', 1);
+    console.log("Closest location to Pune within 50 km:", closestLocations);
+
+    // Adding an event listener for geospatial updates
+    client.on('message', (channel, message) => {
+      console.log(`Received update on channel ${channel}: ${message}`);
+    });
+
+    // Subscribe to updates for geospatial data
+    client.subscribe('maharashtra:geoUpdates', (err, count) => {
+      if (err) {
+        console.error("Failed to subscribe to geoUpdates channel: ", err);
+      } else {
+        console.log(`Subscribed to ${count} channel(s) for geospatial updates.`);
+      }
+    });
+
   } catch (error) {
     console.error("Error handling geospatial data:", error);
   } finally {
